@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Travel</title>
+		<link href="http://code.jquery.com/ui/1.10.4/themes/vader/jquery-ui.css" rel="stylesheet">
+		<script type="text/javascript" src="countries.js"></script>
+		
+		<!-- D3.js -->
+		<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+		<script type="text/javascript" src="http://d3js.org/topojson.v1.min.js"></script>
+		
+		<!-- Odometer -->
+		<link rel="stylesheet" href="http://github.hubspot.com/odometer/themes/odometer-theme-train-station.css" />
+		<script type="text/javascript" src="http://github.hubspot.com/odometer/odometer.js"></script>
+		
+		<!-- jQuery -->
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+		
+		<!-- Typed -->
+		<script src="typed.js"></script>
+		
+		<!-- Firebase -->
+		<script src="https://www.gstatic.com/firebasejs/3.3.0/firebase.js"></script>
+		
+		<style>
+			body {
+				margin: 0 auto;
+				font-family: "Economica", sans-serif;
+				background-color: #0d0d0d;
+			}
+		
+			header {
+				background-color: #e6e6e6;
+				background-image: url("header.jpg");
+				background-position: center top;
+				background-repeat: no-repeat;
+				background-size: cover;
+				line-height: 1.2;
+				padding: 6vw;
+				text-align: center;
+				font-size: 18vw;
+				font-weight: bold;
+				color: #00b33c;
+			}
+		
+			.content {
+				margin: 0 auto;
+				max-width: 80vw;
+				background-color: #e6e6e6;
+				border-style: solid;
+				border-width: 1px;
+				border-color: white;
+				border-radius: 5px;
+				padding: 5px;
+				margin-top: 5px;
+				margin-bottom: 5px;
+			}
+			
+			.center {
+				text-align: center;
+			}
+			
+			.overlay {
+				pointer-events: all;
+			}
+			
+			.land {
+				cursor: pointer;
+			}
+			
+			.states {
+				stroke: black;
+				stroke-linejoin: round;
+				stroke-linecap: round;
+				stroke-width: 0.3px;
+				cursor: pointer;
+			}
+
+			.boundary {
+				fill: none;
+				stroke: black;
+				stroke-linejoin: round;
+				stroke-linecap: round;
+			}
+			
+			#input {
+				margin: 0 auto;
+				max-width: 50em;
+			}
+			
+			.ui-widget {
+				padding-top: 5px;
+			}
+			
+			.odometers {
+				font-size: 30px;
+				text-align:center;
+				padding-top: 20px;
+			}
+			
+			.label {
+				cursor: pointer;
+				display: inline-block;
+				padding-right: 0.5em;
+				transform: translateY(5%);
+			}
+			
+			#left {
+				float:left;
+			}
+
+			#center {
+				display: inline-block;
+				margin:0 auto;
+			}
+
+			#right {
+				float:right;
+			}
+			
+			label {
+				font-family: "Economica", sans-serif;
+				font-size: 25px;
+			}
+			
+			
+			.xAxis path, .xAxis line, .yAxis path, .yAxis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			.xAxis text, yAxis text {
+				font-size: 13px;
+			}
+			
+			.percentages {
+				padding-top: 20px;
+			}
+			
+			#statePercent {
+				display: inline-block;
+				min-width: 10em;
+				max-width: 15em;
+				padding-right: 7em;
+			}
+			
+			#countryPercent {
+				display: inline-block;
+				min-width: 10em;
+				max-width: 15em;
+				padding-left: 7em;
+			}
+			
+			.button {
+				display: inline-block;
+				font-size: 20px;
+				padding: 10px;
+				background-color: white;
+				color: black;
+				border: 2px solid #555555;
+				cursor: pointer; 
+				-webkit-transition-duration: 0.4s; /* Safari */
+				transition-duration: 0.4s;
+			}
+			
+			.button:hover, .bottom button:hover {
+				background-color: #555555;
+				color: white;
+			}
+			
+			.button:active {
+				color: green;
+				border: 1px solid green;
+			}
+			
+			.barButton {
+				border-top-left-radius: 15px;
+				border-bottom-left-radius: 15px;
+			}
+			
+			.pieButton {
+				border-top-right-radius: 15px;
+				border-bottom-right-radius: 15px;
+			}
+			
+			.visited {
+				font-color: green;
+			}
+			
+			.notVisited {
+				font-color: red;
+			}
+			
+			.ui-widget-overlay {
+				background: #AAA;
+				opacity: .50;
+				filter: Alpha(Opacity=30);
+			}
+			
+			.ui-dialog {
+				background: #0d0d0d;
+			}
+			
+			.help {
+				text-align: right;
+			}
+			
+			.bottom button {
+				display: inline-block;
+				font-size: 15px;
+				background-color: white;
+				color: black;
+				border: 2px solid #555555;
+				cursor: pointer; 
+				-webkit-transition-duration: 0.4s; /* Safari */
+				transition-duration: 0.4s;
+			}
+			
+			.bottom {
+				display: flex; 
+				justify-content: space-between;
+				padding-top: 20px;
+			}
+			
+			.compareDiv {
+				padding-top: 20px;
+				text-align: center;
+				font-size: 30px;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<header id="header">Endless Adventure</header>
+		<div class="content">
+			<div id="welcomeDialog" title="Welcome!">
+				<p>Please choose an option below.<br>An account is needed if you would like to save your data.</p>
+			</div>
+			<div id="loginSignupDialog">
+				 <form>
+					<fieldset>
+					<label for="email">Email</label>
+					<input type="text" name="email" id="email" class="text ui-widget-content ui-corner-all">
+					<label for="password">Password</label>
+					<input type="password" name="password" id="password" class="text ui-widget-content ui-corner-all">
+					<div class="confirmPW">
+						<label for="confirmPW">Confirm Password</label>
+						<input type="password" name="confirmPW" id="confirmPW" class="text ui-widget-content ui-corner-all">
+					</div>
+					</fieldset>
+					<text id="errorText"></text>
+				</form>
+			</div>
+			<div id="map" class="center"></div>
+			<div class="ui-widget center">
+				<label for="inputBox">Enter State/Country: </label>
+				<input id="inputBox">
+			</div>
+			<div class="odometers">
+				<div id="left"><text class="label" id="statesVisitedLabel">States visited:</text><div id="stateOdometer" class="odometer">0</div></div>
+				<div id="center"><text class="label" id="countriesVisitedLabel">Countries visited:</text><div id="countryOdometer" class="odometer">0</div></div>
+				<div id="right"><text class="label" id="continentsVisitedLabel">Continents visited:</text><div id="continentOdometer" class="odometer">0</div></div>
+			</div>
+			<div class="percentages center">
+				<div id="statePercent"></div>
+				<div id ="countryPercent"></div>
+			</div>
+			<div class="compareDiv">
+				<div id="left"><text class="label" id="statesVisitedLabel">States visited</text></div>
+				<div id="center"><text class="label" id="countriesVisitedLabel">Countries visited</text></div>
+				<div id="right"><text class="label" id="continentsVisitedLabel">Continents visited</text></div>
+			</div>
+			<div id="charts"></div>
+			<div class="center"><button class="button barButton">Bar</button><button class="button pieButton">Pie</button></div>
+			<div id="dialog"></div>
+			<div class="bottom">
+				<button class="logout">Logout</button>
+				<button class="reset">Reset</button>
+				<button class="compare">Compare</button>
+				<button class="help">Help</button>
+			</div>
+			<div id="compareDialog" title="Compare">
+				<p>Enter email of the person you would like to compare against</p>
+				 <form>
+					<fieldset>
+					<label for="compareEmail">Email</label>
+					<input type="text" name="compareEmail" id="compareEmail" class="text ui-widget-content ui-corner-all">
+					</fieldset>
+					<text id="compareError"></text>
+				</form>
+			</div>
+			<div id="resetDialog" title="Reset all data?">
+				<p>All of your data will be permanently deleted and cannot be recovered. Are you sure?</p>
+			</div>
+		</div>
+		<script type="text/javascript" src="script.js"></script>
+	</body>
+</html>
