@@ -48,7 +48,7 @@ $("#loginSignupDialog").dialog({
 });  
 
 $(".confirmPW").hide();
-  
+
 $("#welcomeDialog").dialog({
 	show: "blind",
 	hide: "blind",
@@ -56,13 +56,14 @@ $("#welcomeDialog").dialog({
 	mexHeight: 200,
 	modal: true,
 	resizable: false,
+	dialogClass: 'no-close',
 	buttons: {
-		Login: function() {
+		"Log In": function() {
 			$("#welcomeDialog").dialog("close");
 			$(".confirmPW").hide();
 			$(document).scrollTop(0);
 			$("#loginSignupDialog").dialog({
-				title: "Login",
+				title: "Log In",
 				buttons: {
 					Back: function() {
 						$("#loginSignupDialog").dialog("close");
@@ -119,8 +120,10 @@ $("#welcomeDialog").dialog({
 		},
 		"Continue without Account": function() {
 			loggedIn = false;
+			$(".logout").html("Log In");
 			userID = "";
 			$("#welcomeDialog").dialog("close");
+			$('body').css('overflow', 'auto');
 			$(document).scrollTop(0);
 		}
 	}
@@ -129,7 +132,9 @@ $("#welcomeDialog").dialog({
  firebase.auth().onAuthStateChanged(firebaseUser => {
 	if (firebaseUser) {
 		loggedIn = true;
+		$(".logout").html("Log Out");
 		$("#loginSignupDialog").dialog("close");
+		$('body').css('overflow', 'auto');
 		$(document).scrollTop(0);
 		$("#password").val("");
 		userID = firebase.auth().currentUser.email.replace(".", "_");
@@ -155,7 +160,9 @@ $("#welcomeDialog").dialog({
 		});
 	} else {
 		loggedIn = false;
+		$(".logout").html("Log In");
 		$("#welcomeDialog").dialog("open");
+		$('body').css('overflow', 'hidden');
 	}
 });
 
@@ -225,9 +232,9 @@ d3.json("world-50m.json", function(error, world) {
 					.attr({
 						x: -width/2 + 5,
 						y: height/2 - 5,
-						fill: "#00ff00",
+						fill: "#ff3333",
 						class: "name",
-						"font-size": "22px"
+						"font-size": "24px"
 					});
 				$("text.name").typed({
 					strings: [name],
@@ -274,9 +281,9 @@ d3.json("world-50m.json", function(error, world) {
                     .attr({
                           x: -width/2 + 5,
                           y: height/2 - 5,
-                          fill: "#00ff00",
+                          fill: "#ff3333",
                           class: "name",
-                          "font-size": "22px"
+                          "font-size": "24px"
                           });
                     $("text.name").typed({
                                          strings: [name],
@@ -404,23 +411,29 @@ $("[id=countriesVisitedLabel]").on("click", function() {
 	$("[id=countriesVisitedLabel]").css("color", "black");
 });
 
+$('#dialog').on('dialogopen', function(){
+    $('body').css('overflow', 'hidden');
+}).on('dialogclose', function(){
+    $('body').css('overflow', 'auto');
+});
+
 $("[id=continentsVisitedLabel]").on("click", function() {
 	$("#dialog").html(function() {
 		var str = "";
 		for (var i = 0; i < continentNames.length; i++) {
 			if (compareClicked) {
-				if (continents[continentNames[i]].visited && otherContinents[continentNames[i]].visited) {
+				if (continents[continentNames[i]] > 0 && otherContinents[continentNames[i]] > 0) {
 					str += "<font color=\"#00b386\">" + continentNames[i] + "</font>";
 				}
-				else if (continents[continentNames[i]].visited) {
+				else if (continents[continentNames[i]] > 0) {
 					str += "<font color=\"#00b33c\">" + continentNames[i] + "</font>";
-				} else if (otherCountries[continentNames[i]].visited){
+				} else if (otherContinents[continentNames[i]] > 0) {
 					str += "<font color=\"#0059b3\">" + continentNames[i] + "</font>";
 				} else {
 					str += "<font color=\"red\">" + continentNames[i] + "</font>";
 				}
 			} else {
-				if (otherContinents[continentNames[i]] > 0) {
+				if (continents[continentNames[i]] > 0) {
 					str += "<font color=\"#00b33c\">" + continentNames[i] + "</font>";
 				} else {
 					str += "<font color=\"red\">" + continentNames[i] + "</font>";
@@ -450,9 +463,11 @@ $("#resetDialog").dialog({
 		"Yes, reset": function() { 
 			reset(),		
 			$(this).dialog("close");
+			$('body').css('overflow', 'auto');
 		},
 		Cancel: function() {
 			$(this).dialog("close");
+			$('body').css('overflow', 'auto');
 		}
 	}
 });
@@ -464,8 +479,10 @@ $(".logout").on("click", function() {
 		firebase.auth().signOut();
 	} else {
 		$("#welcomeDialog").dialog("open");
+		$('body').css('overflow', 'hidden');
 	}
 	loggedIn = false;
+	$(".logout").html("Log In");
 	userID = "";
 	reset();
 	loggingOut = false;
@@ -473,13 +490,20 @@ $(".logout").on("click", function() {
 
 $(".reset").on("click", function() {
 	$("#resetDialog").dialog("open");
+	$('body').css('overflow', 'hidden');
 });
 
 $(".help").on("click", function() {
-	$("#dialog").html("Click on (or type into the box below map) all of the states and countries that you have visited.<br>To see a list of each type of territory, click on 'States visited', 'Countries visited' or 'Continents visited'.  ");
+	$("#dialog").html("Click on (or type into the box below the map) all of the states and countries that you have visited, and watch as the data visualizations " + 
+		"update to show stats about your travels.<br><br>If you are logged in, your data is automatically saved in real time and will be waiting for you next time you sign in. " +
+		"<br><br>To see a list of each type of territory, click on 'States visited', 'Countries visited' or 'Continents visited'.<br><br>Click on the 'Bar' or 'Pie' buttons " +
+		"to change the type of graph showing your data.<br><br>To see how the places you've visited stack up against your friends, click on the 'Compare' button and enter in your " +
+		"friends email (They must already have an account). Click 'Compare' again to return to only your data.<br><br>If you would like to start fresh, click the 'Reset' button.<br><br>" +
+		"Now go get started, and when you are finished, go back out into the world to continue living an Endless Adventure!");
 	$("#dialog").dialog({
 		title: "Help"
 	}).dialog("open");
+	$('body').css('overflow', 'hidden');
 });
 
 $("#compareDialog").dialog({
@@ -497,6 +521,7 @@ $("#compareDialog").dialog({
 					$("#compareError").html("There is no user with that email, please try again.");
 				} else {
 					$("#compareDialog").dialog("close");
+					$('body').css('overflow', 'auto');
 					$("#compareError").html("");
 					otherCountries = snapshot.val().countries;
 					otherStates = snapshot.val().states;
@@ -508,11 +533,19 @@ $("#compareDialog").dialog({
 	}
 });
 
+$("#compareEmail").keypress(function(event) {
+	var keycode = (event.keyCode ? event.keyCode : event.which);
+    if(keycode == '13'){
+        return false; 
+    }
+})
+
 $(".compare").on("click", function() {
 	if (compareClicked) {
 		removeCompare();
 	} else {
 		$("#compareDialog").dialog("open");
+		$('body').css('overflow', 'hidden');
 	}
 });
 
